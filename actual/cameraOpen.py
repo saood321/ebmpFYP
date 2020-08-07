@@ -1,8 +1,12 @@
-
 import cv2
-from cropImage import *
+from Segmentation import *
 import time
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def camera():
     mood=""
     cap = cv2.VideoCapture(0)
@@ -10,7 +14,7 @@ def camera():
     cap.set(4, 1024)
     cap.set(15, 0.1)
     previous = time.time()
-    delta = 0
+    counter = 0
     while True:
         ret, img = cap.read()
         frame = cv2.flip(img, 1)
@@ -22,15 +26,14 @@ def camera():
             cv2.putText(frame, mood, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
 
         current = time.time()
-        delta += current - previous
+        counter += current - previous
         previous = current
-        if delta > 5:
-            mood1 = crop(frame)
-            if (mood1 == 0):
+        if counter > 5:
+            mood = crop(frame)
+            mood=mood[0]
+            if (mood == 0):
                 mood = ""
-            else:
-                mood = mood1[0]
-            delta = 0
+            counter = 0
 
         cv2.imshow("result", frame)
         if(cv2.waitKey(1) & 0xFF == ord('n')):

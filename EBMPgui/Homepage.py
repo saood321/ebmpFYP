@@ -86,7 +86,7 @@ def upgradedata(win,name):
     Upgrade.callme(name)
 
 def camera():
-    with add_path(r'C:\Users\M.Saood Sarwar\PycharmProjects\fyp\actual'):
+    with add_path(r'C:\Users\M.Saood Sarwar\PycharmProjects\ebmpFYP\actual'):
         mod = __import__('mainstart')
     del sys.modules['mainstart']
 

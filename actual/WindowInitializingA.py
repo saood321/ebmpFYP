@@ -1,5 +1,5 @@
 from tkinter import*
-from PIL import ImageTk
+
 
 def window():
     win = Tk()

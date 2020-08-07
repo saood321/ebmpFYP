@@ -1,13 +1,16 @@
-import pandas as pd
 import joblib
-import os
 
+"""
+@requires: list containing features of face containing current emotions
+@functionality: This function predict emotion of face through trained model
+@effect: Return mood of person
+"""
 def predict(Test):
-    #filename = 'Model.sav' if we want to use landmark algorithm model
-    filename = 'hog.sav'
+    filename = 'Model.sav' #if we want to use landmark algorithm model
+    #filename = 'hog.sav'
     loaded_model = joblib.load(filename)
-    var = loaded_model.predict([Test])
-    return var
+    mood = loaded_model.predict([Test])
+    return mood
 
 
 

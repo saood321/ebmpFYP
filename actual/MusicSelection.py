@@ -27,7 +27,6 @@ def randomsong(songtype,random_no):
 def appending(combine_list,new_list):
     count=0
     for i in new_list:
-
         r=0
         for j in combine_list:
             if i==j:
@@ -35,12 +34,10 @@ def appending(combine_list,new_list):
         if(r==0):
             combine_list.append(i)
             count = count + 1
-
     return combine_list
 
 def database(mood,val):
     global myresult
-
     import CheckSongType
     songtype1=CheckSongType.songtype(mood)
     songtype=songtype1[0][0]
@@ -52,8 +49,6 @@ def database(mood,val):
     combine_list=appending(combine_list,myresult)
     combine_list=appending(combine_list,history)
     combine_list=appending(combine_list,randomlist)
-
-
     less=len(combine_list)
     less=10-less
 

@@ -7,29 +7,31 @@ import threading
 from tkinter.messagebox import *
 global textMusicCurrent
 global textMusicLength
-playlist = []
 global playlistBox
 global statusBar
 global btnMute
 global imageVolume
 global scaleVolume
 global imageMute
-global path
 global music_selected
-global myresult
+global songListWithIds
 import actual.DataBaseConnect
+global songPath
 mydb, mycursor = actual.DataBaseConnect.database()
-global path2
-
+playlist = []
+"""
+@requires: None
+@functionality: This function plays the selected song
+@effect: None
+"""
 def select_music():
     global music_selected
-    global path
     global paused
-    global path2
+    global songPath
 
     if paused:
         mixer.music.unpause()
-        statusBar['text'] = "Playing - " + os.path.basename(path2)
+        statusBar['text'] = "Playing - " + os.path.basename(songPath)
         paused = FALSE
     else:
         try:
@@ -40,27 +42,29 @@ def select_music():
             sql = ("""SELECT SongUrl FROM song WHERE SongName='%s' """ % (music_play_path))
             mycursor.execute(sql)
             url = mycursor.fetchall()
-            path2 = url[0][0] + ".mp3"
-            mixer.music.load(path2)
+            songPath = url[0][0] + ".mp3"
+            mixer.music.load(songPath)
             time.sleep(1)
             mixer.music.play()
             statusBar['text'] = "Playing - " + os.path.basename(url[0][0])
-            show_details(path2)
+            show_details(songPath)
         except :
             showerror("EBMP","First Click on song")
 
-
+"""
+@requires: songListWithIds contain song ids and oldrating1 contains songId and their respective old ratings
+@functionality: This function changes the rating of that specific song when user rates
+@effect: None
+"""
 global index
-def ratingChange(myresult,oldrating1):
+def ratingChange(songListWithIds,oldrating1):
     global index
     music_selected = playlistBox.curselection()
     music_selected = int(music_selected[0])
-    index = myresult[music_selected]
+    index = songListWithIds[music_selected]
     try:
         length = len(oldrating1)
-
         mydb, mycursor = actual.DataBaseConnect.database()
-
         sql = ("""SELECT NoOfRating FROM Song WHERE SongId='%s' """ % (index[0]))
         mycursor.execute(sql)
         no_rating = mycursor.fetchall()
@@ -71,10 +75,10 @@ def ratingChange(myresult,oldrating1):
         total_rating = mycursor.fetchall()
         total_rating = total_rating[0][0]
 
-        val = float(value1)
+        newRating = float(rating)
 
         if(length==0):
-            rating_update=((total_rating*no_rating)+val)/(no_rating+1)
+            rating_update=((total_rating*no_rating)+newRating)/(no_rating+1)
             rating_update=round(rating_update,2)
 
             new_no_rating=no_rating+1
@@ -82,7 +86,7 @@ def ratingChange(myresult,oldrating1):
         else:
             new_no_rating=no_rating
             oldrating=oldrating1[0][1]
-            rating_update = ((total_rating * no_rating) + (val-oldrating)) / (no_rating)
+            rating_update = ((total_rating * no_rating) + (newRating-oldrating)) / (no_rating)
             rating_update = round(rating_update, 2)
 
         mycursor.execute("""UPDATE Song SET TotalRating='%s' WHERE SongId=%s""", (rating_update, index[0]))
@@ -94,71 +98,101 @@ def ratingChange(myresult,oldrating1):
         updated1 = mycursor.rowcount
 
         if (updated == 1 and updated1 == 1):
-            showinfo("EBMP", "updated")
+            showinfo("EBMP", "Updated")
     except:
         showerror("EBMP","Failed")
 
+"""
+@requires: None
+@functionality: This function gets the username of that user who is currently login
+@effect: Return username of user
+"""
 global val
 def getname():
     sys.path.append(r"C:\Users\M.Saood Sarwar\PycharmProjects\fyp\EBMPgui")
     from Signin import Geek
     p = Geek()
-    val = p.getVal()
-    return val
+    username = p.getVal()
+    return username
 
-def user_ratingChange(myresult,oldrating1):
-    global val
+"""
+@requires: oldrating1 contains songId and their respective old ratings of that specific user
+@functionality: This function changes the rating of song in history
+@effect: none
+"""
+def user_ratingChange(oldrating1):
+    global rating
     global index
 
     length = len(oldrating1)
-    val = getname()
+    username = getname()
     mydb, mycursor = actual.DataBaseConnect.database()
 
     if(length==0):
         sql = "INSERT INTO History (UserID,SongId,Rating) VALUES (%s, %s,%s)"
-        val1 = (val, index[0], value1)
-        mycursor.execute(sql, val1)
+        values = (username, index[0], rating)
+        mycursor.execute(sql, values)
         mydb.commit()
     else:
 
-        val = float(value1)
-        mycursor.execute("""UPDATE history SET Rating='%s' WHERE SongId=%s""", (val, index[0]))
+        rating = float(rating)
+        mycursor.execute("""UPDATE history SET Rating='%s' WHERE SongId=%s""", (rating, index[0]))
         mydb.commit()
 
-def two(myresult):
+"""
+@requires: songListWithIds contain list of song_ids
+@functionality: This function calls the two function that changes overall rating and user rating individually
+@effect: None
+"""
+def two(songListWithIds):
     try:
         mydb, mycursor = actual.DataBaseConnect.database()
         music_selected = playlistBox.curselection()
         music_selected = int(music_selected[0])
-        index = myresult[music_selected]
-        val=getname()
+        index = songListWithIds[music_selected]
+        username=getname()
 
-        sql = ("""SELECT SongId,Rating FROM history WHERE UserId='%s' and SongId='%s' """ % (val,index[0]))
+        sql = ("""SELECT SongId,Rating FROM history WHERE UserId='%s' and SongId='%s' """ % (username,index[0]))
         mycursor.execute(sql)
-        url = mycursor.fetchall()
-        ratingChange(myresult,url)
-        user_ratingChange(myresult,url)
+        oldRating= mycursor.fetchall()
+        ratingChange(songListWithIds,oldRating)
+        user_ratingChange(oldRating)
     except:
         showerror("EBMP","First Play the Song")
 
 
-global value1
-def report_change(name,value):
-    global value1
-    value1=value
+"""
+@requires: value
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
+global rating
+def report_change(value):
+    global rating
+    rating=value
 
 
-def fill(myresult2,playlistBox,playlist):
-    print(myresult2)
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
+def fill(songList,playlistBox,playlist):
+    print(songList)
     k = 0
 
-    length = len(myresult2)
+    length = len(songList)
     while k<length:
-        playlistBox.insert(k, myresult2[k][1])
-        playlist.insert(k, myresult2[k][1])
+        playlistBox.insert(k, songList[k][1])
+        playlist.insert(k, songList[k][1])
         k=k+1
     return playlistBox,playlist
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def refresh_playlist(mood):
     import MusicSelection
     import CheckSongType
@@ -169,17 +203,28 @@ def refresh_playlist(mood):
     musiclist1=idToSongName(musiclist)
     fill(musiclist1,playlistBox,playlist)
 
-def idToSongName(myresult):
-    myresult2 = []
-    count=0
-    for i in myresult:
-        sql = ("""SELECT SongUrl,SongName FROM Song WHERE SongId='%s' """ % (myresult[count][0]))
-        mycursor.execute(sql)
-        myresult1 = mycursor.fetchall()
-        count = count + 1
-        myresult2.append(myresult1[0])
-    return myresult2
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
+def idToSongName(songListWithIds):
+    songList = []
+    count=0
+    for i in songListWithIds:
+        sql = ("""SELECT SongUrl,SongName FROM Song WHERE SongId='%s' """ % (songListWithIds[count][0]))
+        mycursor.execute(sql)
+        tempList = mycursor.fetchall()
+        count = count + 1
+        songList.append(tempList[0])
+    return songList
+
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def main(mood,calltype):
     from PIL import ImageTk
     win=Toplevel()
@@ -191,28 +236,28 @@ def main(mood,calltype):
     global playlistBox
     playlistBox = Listbox(win, relief=RAISED, width=38, height=12)
     playlistBox.place(x=200, y=190)
-    val=getname()
+    username=getname()
 
     if calltype=="History":
         import actual.MusicSelection
 
-        myresult=actual.MusicSelection.historysongs(None,val,10)
-        myresult2 = idToSongName(myresult)
+        songListWithIds=actual.MusicSelection.historysongs(None,username,10)
+        songList = idToSongName(songListWithIds)
 
-        fill(myresult2, playlistBox, playlist)
+        fill(songList, playlistBox, playlist)
     else:
         import MusicSelection
-        myresult=MusicSelection.database(mood,val)
-        myresult2 = idToSongName(myresult)
-        fill(myresult2, playlistBox, playlist)
+        songListWithIds=MusicSelection.database(mood,username)
+        songList = idToSongName(songListWithIds)
+        fill(songList, playlistBox, playlist)
         Label(win, text=mood, font=("times new roman", 25, "bold")).place(x=510, y=140)
 
 
     global var
     var = DoubleVar()
-    scale = Scale(win,command=lambda value, name=var: report_change(name, value),variable=var, orient=HORIZONTAL, sliderlength=40, width=20, length=200, from_=0, to=10)
+    scale = Scale(win,command=lambda value, name=var: report_change(value),variable=var, orient=HORIZONTAL, sliderlength=40, width=20, length=200, from_=0, to=10)
     scale.place(x=710,y=270)
-    button = Button(win, text="Rate Song",command=lambda:two(myresult))
+    button = Button(win, text="Rate Song",command=lambda:two(songListWithIds))
     button.place(x=760,y=330)
 
 
@@ -274,6 +319,11 @@ def main(mood,calltype):
     win.mainloop()
 
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def start_counter(length):
     global paused
     count = 0
@@ -293,6 +343,11 @@ def start_counter(length):
             count += 1
 
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def show_details(filepath):
     splitFileName = os.path.splitext(filepath)
 
@@ -314,6 +369,11 @@ def show_details(filepath):
     threadCounter.start()
 
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def music_stop():
     try:
         global paused
@@ -325,6 +385,11 @@ def music_stop():
 paused = FALSE
 
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def music_pause():
     try:
         global paused
@@ -337,6 +402,11 @@ def music_pause():
 muted = FALSE
 
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def music_mute():
     global muted
     global btnMute
@@ -354,15 +424,29 @@ def music_mute():
     except:
         showerror("EBMP","Cannot Mute")
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def music_volume(val):
 
     volume = int(val) / 100
     mixer.music.set_volume(volume)
 
-
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def on_exit(win):
     music_stop()
     win.destroy()
 
+"""
+@requires: None
+@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
+@effect: Return mood of person
+"""
 def call(mood,calltype):
     main(mood,calltype)
