@@ -162,9 +162,9 @@ def two(songListWithIds):
 
 
 """
-@requires: value
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: value of current ratings
+@functionality: This function only capture current ratings of song when user changes it
+@effect: None
 """
 global rating
 def report_change(value):
@@ -173,9 +173,9 @@ def report_change(value):
 
 
 """
-@requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: songList which contains songs and playlistBox which is used for displaying music
+@functionality: This function fills the songs in playlistbox for user 
+@effect: playlistBox which has been filled
 """
 def fill(songList,playlistBox,playlist):
     print(songList)
@@ -189,9 +189,9 @@ def fill(songList,playlistBox,playlist):
     return playlistBox,playlist
 
 """
-@requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: current mood of user
+@functionality: This function refreshes the list of songs
+@effect: None
 """
 def refresh_playlist(mood):
     import MusicSelection
@@ -205,9 +205,9 @@ def refresh_playlist(mood):
 
 
 """
-@requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: songListWithIds contain list of songs with ids that has been generated 
+@functionality: This function fetch songUrl and songName from their respective ids
+@effect: Return song list with their name and their path
 """
 def idToSongName(songListWithIds):
     songList = []
@@ -221,9 +221,9 @@ def idToSongName(songListWithIds):
     return songList
 
 """
-@requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: current mood of person and calltype whether user want to listen music from history or not
+@functionality: This function display button, scales and other controls
+@effect: None
 """
 def main(mood,calltype):
     from PIL import ImageTk
@@ -320,9 +320,9 @@ def main(mood,calltype):
 
 
 """
-@requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: length of music
+@functionality: This function starts the counter for displaying time
+@effect: None
 """
 def start_counter(length):
     global paused
@@ -344,9 +344,9 @@ def start_counter(length):
 
 
 """
-@requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: filepath is the full path music that is currently playing
+@functionality: This function shows the details (current time,total time etc)
+@effect: None
 """
 def show_details(filepath):
     splitFileName = os.path.splitext(filepath)
@@ -371,8 +371,8 @@ def show_details(filepath):
 
 """
 @requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@functionality: This function stops the playing music
+@effect: None
 """
 def music_stop():
     try:
@@ -387,8 +387,8 @@ paused = FALSE
 
 """
 @requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@functionality: This function pause the playing music
+@effect: None
 """
 def music_pause():
     try:
@@ -404,8 +404,8 @@ muted = FALSE
 
 """
 @requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@functionality: This function mute the music
+@effect: None
 """
 def music_mute():
     global muted
@@ -425,9 +425,9 @@ def music_mute():
         showerror("EBMP","Cannot Mute")
 
 """
-@requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: volume of music
+@functionality: This function divides the volume into 100 parts and then set it
+@effect: None
 """
 def music_volume(val):
 
@@ -435,18 +435,18 @@ def music_volume(val):
     mixer.music.set_volume(volume)
 
 """
-@requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: win which is object of window
+@functionality: This function close the window to music player
+@effect: None
 """
 def on_exit(win):
     music_stop()
     win.destroy()
 
 """
-@requires: None
-@functionality: This function opens camera, draw rectangle around face and show mood of person around rectangle
-@effect: Return mood of person
+@requires: mood of person and calltype whether this function is called by history or main 
+@functionality: This function  only calls main function
+@effect: None
 """
 def call(mood,calltype):
     main(mood,calltype)

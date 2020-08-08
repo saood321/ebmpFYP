@@ -30,9 +30,10 @@ def camera():
         previous = current
         if counter > 5:
             mood = crop(frame)
-            mood=mood[0]
             if (mood == 0):
                 mood = ""
+            else:
+                mood=mood[0]
             counter = 0
 
         cv2.imshow("result", frame)

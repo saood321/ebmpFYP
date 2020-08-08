@@ -7,7 +7,7 @@ import joblib
 """
 def predict(Test):
     filename = 'Model.sav' #if we want to use landmark algorithm model
-    #filename = 'hog.sav'
+    #filename = 'combine.sav'
     loaded_model = joblib.load(filename)
     mood = loaded_model.predict([Test])
     return mood
